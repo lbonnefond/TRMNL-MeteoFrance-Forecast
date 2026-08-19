@@ -1,3 +1,9 @@
 .DS_Store
+
+# Configuration locale / hébergement
+/.htaccess
+/public/.htaccess
+
+# Cache applicatif
 /var/cache/*
 !/var/cache/.gitkeep
