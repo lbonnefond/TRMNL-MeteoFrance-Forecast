@@ -1,0 +1,90 @@
+{% comment %}
+
+  Adaptation du layout Quadrant original
+  pour le backend Météo-France.
+
+{% endcomment %}
+
+{% assign weather = IDX_0 %}
+{% assign icons = IDX_1.icons %}
+{% assign icons_base_url = IDX_1.base_url %}
+
+
+{% # CURRENT # %}
+
+{% assign code_str_current = weather.current.weather_code | append: '' %}
+
+{% assign icon_current = icons[code_str_current].night %}
+
+{% if weather.current.is_day == 1 %}
+  {% assign icon_current = icons[code_str_current].day %}
+{% endif %}
+
+
+{% # LAYOUT # %}
+
+<div class="layout layout--col gap--space-between">
+
+  <div class="grid">
+
+    <div class="col col--span-2 col--start">
+
+      <div class="item h--full">
+
+        <div class="meta"></div>
+
+        <div class="grid grid--cols-1">
+
+          <span class="title">
+            Actuellement ({{ weather.current.time | date: '%H:%M' }})
+          </span>
+
+
+          <div class="row row--start">
+
+            <div class="col col--center">
+
+              <img
+                style="width: 110px; height: 110px; margin-left: -5px;"
+                src="{{ icons_base_url | append: icon_current }}"
+              >
+
+            </div>
+
+
+            <div class="col col--center">
+
+              <span
+                class="value value--large"
+                data-value-fit="true"
+              >
+                {{- weather.current.temperature_2m | round }}°
+              </span>
+
+            </div>
+
+
+            <div class="col col--center"></div>
+
+          </div>
+
+
+          <span
+            class="value"
+            data-value-fit="true"
+            data-value-fit-max-height="50"
+          >
+            {{- weather.current.weather_description -}}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- layout end -->
