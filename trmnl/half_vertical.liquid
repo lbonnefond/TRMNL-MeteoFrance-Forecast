@@ -40,9 +40,7 @@
 {% endfor %}
 
 
-{% # TODAY # %}
-
-{% # Build array of indices for today's hours # %}
+{% # TODAY HOURLY INDICES # %}
 
 {% assign epoch_current = weather.current.time | date: '%s' %}
 
@@ -74,7 +72,7 @@
 %}
 
 
-{% # Representative weather for today's displayed hours # %}
+{% # REPRESENTATIVE TODAY WEATHER # %}
 
 {% assign today_weather_codes = '' %}
 
@@ -113,7 +111,7 @@
 %}
 
 
-{% # Find the matching hourly entry, day/night state and description # %}
+{% # FIND MATCHING HOUR / DAY-NIGHT / DESCRIPTION # %}
 
 {% assign worst_weather_today_is_day = 1 %}
 {% assign worst_weather_today_idx = 0 %}
@@ -141,7 +139,6 @@
 
 {% endfor %}
 
-
 {% assign icon_today = icons[code_str_today].night %}
 
 {% if worst_weather_today_is_day == 1 %}
@@ -160,14 +157,14 @@
   <!-- ROW 1: CURRENT -->
   <div>
 
-    <div class="item h--full">
+    <div class="item">
 
       <div class="meta"></div>
 
       <div class="grid grid--cols-1">
 
         <span class="title">
-          Actuellement ({{ weather.current.time | date: '%H:%M' }})
+          Maintenant ({{ weather.current.time | date: '%H:%M' }})
         </span>
 
         <div class="row row--start">
@@ -200,6 +197,7 @@
           class="value"
           data-value-fit="true"
           data-value-fit-max-height="50"
+          style="margin-top: -0.15em;"
         >
           {{- weather.current.weather_description -}}
         </span>
@@ -217,7 +215,7 @@
   <!-- ROW 2: TODAY -->
   <div>
 
-    <div class="item h--full">
+    <div class="item">
 
       <div class="meta"></div>
 
@@ -267,13 +265,13 @@
 
                 <div
                   class="content"
-                  style="margin-left: 0.5em;"
+                  style="margin-left: 1em;"
                 >
 
                   <span
                     class="value"
                     data-value-fit="true"
-                    data-value-fit-max-height="60"
+                    data-value-fit-max-height="40"
                   >
                     {{- description_today -}}
                   </span>
@@ -293,7 +291,10 @@
 
 
         <!-- TODAY HOURLY -->
-        <div class="grid grid--cols-{{ MAX_HOURS_DISPLAY_TODAY }}">
+        <div
+          class="grid grid--cols-{{ MAX_HOURS_DISPLAY_TODAY }}"
+          style="margin-top: -8px;"
+        >
 
           {% for idx_str in today_hourly_indices %}
 
