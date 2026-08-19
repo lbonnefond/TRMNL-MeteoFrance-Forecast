@@ -44,6 +44,7 @@ final class TrmnlForecastAdapter
         $hourlyTime = [];
         $hourlyTemperature = [];
         $hourlyWeatherCode = [];
+        $hourlyWeatherCodeMeteoFrance = [];
         $hourlyWeatherDescription = [];
         $hourlyIsDay = [];
 
@@ -55,7 +56,12 @@ final class TrmnlForecastAdapter
 
             $hourlyTemperature[] = $hour->temperature;
 
-            $hourlyWeatherCode[] = $hour->weatherIcon;
+            $hourlyWeatherCode[] = self::meteofranceToWmo(
+                $hour->weatherIcon
+            );
+
+            $hourlyWeatherCodeMeteoFrance[] =
+                $hour->weatherIcon;
 
             $hourlyWeatherDescription[] =
                 $hour->weatherDescription;
@@ -71,6 +77,7 @@ final class TrmnlForecastAdapter
          */
         $dailyTime = [];
         $dailyWeatherCode = [];
+        $dailyWeatherCodeMeteoFrance = [];
         $dailyWeatherDescription = [];
         $dailySunrise = [];
         $dailySunset = [];
@@ -83,7 +90,12 @@ final class TrmnlForecastAdapter
                 $timezone
             );
 
-            $dailyWeatherCode[] = $day->weatherIcon;
+            $dailyWeatherCode[] = self::meteofranceToWmo(
+                $day->weatherIcon
+            );
+
+            $dailyWeatherCodeMeteoFrance[] =
+                $day->weatherIcon;
 
             $dailyWeatherDescription[] =
                 $day->weatherDescription;
@@ -123,6 +135,10 @@ final class TrmnlForecastAdapter
                     $dataset->days
                 ),
                 'weather_code' =>
+                    self::meteofranceToWmo(
+                        $current->weatherIcon
+                    ),
+                'weather_code_meteofrance' =>
                     $current->weatherIcon,
                 'weather_description' =>
                     $current->weatherDescription,
@@ -134,6 +150,8 @@ final class TrmnlForecastAdapter
                     $hourlyTemperature,
                 'weather_code' =>
                     $hourlyWeatherCode,
+                'weather_code_meteofrance' =>
+                    $hourlyWeatherCodeMeteoFrance,
                 'weather_description' =>
                     $hourlyWeatherDescription,
                 'is_day' =>
@@ -144,6 +162,8 @@ final class TrmnlForecastAdapter
                 'time' => $dailyTime,
                 'weather_code' =>
                     $dailyWeatherCode,
+                'weather_code_meteofrance' =>
+                    $dailyWeatherCodeMeteoFrance,
                 'weather_description' =>
                     $dailyWeatherDescription,
                 'sunrise' =>
@@ -156,6 +176,152 @@ final class TrmnlForecastAdapter
                     $dailyTemperatureMin,
             ],
         ];
+    }
+
+    /**
+     * Convertit un code d'icône Météo-France en code météo WMO.
+     *
+     * Le but n'est pas de reconstruire exactement la classification
+     * météorologique WMO, mais de fournir un code compatible avec
+     * iconsmapping.v1.json utilisé par le plugin TRMNL original.
+     *
+     * Les suffixes j/n indiquent le jour ou la nuit et ne modifient
+     * pas le phénomène météorologique. Le choix de l'icône jour/nuit
+     * est effectué séparément grâce à is_day.
+     */
+    private static function meteofranceToWmo(
+        string $code
+    ): int {
+        /*
+         * Retire le suffixe jour/nuit.
+         *
+         * Exemples :
+         * p1j      -> p1
+         * p2bisn   -> p2bis
+         * p14bisj  -> p14bis
+         */
+        $baseCode = preg_replace(
+            '/[jn]$/',
+            '',
+            strtolower(trim($code))
+        );
+
+        if ($baseCode === null) {
+            return 3;
+        }
+
+        return match ($baseCode) {
+            /*
+             * Ciel clair / ensoleillé.
+             */
+            'p1' => 0,
+
+            /*
+             * Éclaircies / variable.
+             */
+            'p2',
+            'p2bis' => 2,
+
+            /*
+             * Très nuageux / couvert.
+             */
+            'p3',
+            'p3bis',
+            'p4' => 3,
+
+            /*
+             * Brouillard.
+             */
+            'p5',
+            'p6',
+            'p7' => 45,
+
+            /*
+             * Bruine / faibles précipitations.
+             */
+            'p8',
+            'p9',
+            'p10' => 51,
+
+            /*
+             * Pluie faible / averses faibles.
+             */
+            'p11',
+            'p12',
+            'p12bis',
+            'p13',
+            'p13bis' => 61,
+
+            /*
+             * Pluie / averses.
+             */
+            'p14',
+            'p14bis',
+            'p15',
+            'p15bis' => 63,
+
+            /*
+             * Pluie forte / fortes averses.
+             */
+            'p16',
+            'p16bis' => 65,
+
+            /*
+             * Neige faible / averses de neige faibles.
+             */
+            'p17',
+            'p17bis',
+            'p18',
+            'p18bis' => 71,
+
+            /*
+             * Neige.
+             */
+            'p19',
+            'p19bis',
+            'p20',
+            'p20bis' => 73,
+
+            /*
+             * Neige forte.
+             */
+            'p21',
+            'p21bis' => 75,
+
+            /*
+             * Pluie et neige mêlées.
+             */
+            'p22',
+            'p22bis',
+            'p23',
+            'p23bis' => 85,
+
+            /*
+             * Orages.
+             */
+            'p24',
+            'p25',
+            'p26',
+            'p26bis',
+            'p27',
+            'p27bis' => 95,
+
+            /*
+             * Orages forts / grêle.
+             */
+            'p28',
+            'p28bis',
+            'p29',
+            'p29bis',
+            'p30',
+            'p30bis' => 99,
+
+            /*
+             * Code inconnu : couvert constitue un fallback
+             * visuellement neutre.
+             */
+            default => 3,
+        };
     }
 
     /**
